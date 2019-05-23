@@ -6,7 +6,7 @@
 
 ## Example
 
-See output with `node 'app.js`
+See output with `node 'app.js'`
 
 ## Instructions
 

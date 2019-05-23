@@ -1,32 +1,56 @@
 const fs = require("fs");
+require("./floor.js");
+const Roomba = require("./roomba.js");
+const Floor = require("./floor.js");
 
-fs.readFile("./input.txt", "utf-8", (err, data) => {
-  if (err) throw err;
-  const commands = data.split("\n");
-  console.log(commands);
+class Input {
+  constructor() {
+    this.directions = "";
+    this.floor = [];
+    this.roomba = [];
+  }
 
-  const directions = commands.pop().split("");
-  const floor = commands.shift().split(" ");
-  const roomba = commands.shift().split(" ");
+  getData() {
+    fs.readFile("./input.txt", "utf-8", (err, data) => {
+      if (err) throw err;
+      const input = data.split("\n");
+      this.directions = input.pop().split("");
+      const floorArea = input
+        .shift()
+        .split(" ")
+        .map(element => {
+          return parseInt(element);
+        });
+      this.roomba = new Roomba(input.shift().split(" "));
 
-  const floorCoordinates = parseCoordinates(floor);
-  const roombaCoordinates = parseCoordinates(roomba);
-
-  const dirtPatches = commands.map(patch => {
-    return patch.split(" ").map(element => {
-      return parseInt(element);
+      const dirtPatches = input.map(patch => {
+        return patch.split(" ").map(element => {
+          return parseInt(element);
+        });
+      });
+      this.floor = new Floor(floorArea, dirtPatches, this.roomba);
+      this.cleanRoom();
     });
-  });
-
-  console.log(floorCoordinates);
-  console.log(roombaCoordinates);
-  console.log(dirtPatches);
-  console.log(directions);
-});
-
-parseCoordinates = data => {
-  let parsedData = data.map(element => {
-    return parseInt(element);
-  });
-  return parsedData;
-};
+  }
+  cleanRoom() {
+    this.directions.map(direction => {
+      if (direction === "N" && this.roomba.y < this.floor.y) {
+        this.roomba.y += 1;
+        this.floor.checkDirtPatches([this.roomba.x, this.roomba.y]);
+      } else if (direction === "E" && this.roomba.x < this.floor.x) {
+        this.roomba.x += 1;
+        this.floor.checkDirtPatches([this.roomba.x, this.roomba.y]);
+      } else if (direction === "S" && this.roomba.y > 0) {
+        this.roomba.y -= 1;
+        this.floor.checkDirtPatches([this.roomba.x, this.roomba.y]);
+      } else if (direction === "W" && this.roomba.x > 0) {
+        this.roomba.x -= 1;
+        this.floor.checkDirtPatches([this.roomba.x, this.roomba.y]);
+      }
+    });
+    console.log(this.roomba.x, this.roomba.y);
+    console.log(this.floor.cleanedPatches);
+  }
+}
+input = new Input();
+input.getData();
